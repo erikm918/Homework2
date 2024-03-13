@@ -13,6 +13,3 @@ that is operating at that moment. So long as the robot is designated as finishin
 implimentation of a conditional statement as previously memtioned, the robot will be marked as complete prior to the 
 program finishing its task. However so long as the task is completed and there are no issues (as expected in Q2), this is
 not a problem.
-
-Quesiton 6: 
-

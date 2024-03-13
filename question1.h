@@ -9,9 +9,12 @@
 
 // Creates base sensor class that further classes will be derived from.
 class Sensor {
+    protected:
+    std::string name;
+
     public:
-        virtual void gatherData() = 0;
-        virtual void processData() = 0;
+        virtual void gatherData();
+        virtual void processData();
 };
 
 // 1.2
@@ -19,29 +22,20 @@ class Sensor {
 
 // Temperature sensor
 class temperatureSensor : public Sensor {
-    std::string name = "Temperature";
-
     public:
-        void gatherData() override;
-        void processData() override;
+        temperatureSensor() {this->name = "Temperature";}
 };
 
 // Velocity sensor
 class velocitySensor : public Sensor {
-    std::string name = "Velocity";
-
     public:
-        void gatherData() override;
-        void processData() override;
+        velocitySensor() {this->name = "Velocity";}
 };
 
 // Pressure sensor
 class pressureSensor : public Sensor {
-    std::string name = "Pressure";
-
     public:
-        void gatherData() override;
-        void processData() override;
+        pressureSensor() {this->name = "Pressure";}
 };
 
 // 1.3

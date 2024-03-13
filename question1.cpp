@@ -1,28 +1,12 @@
 #include "question1.h"
 #include <iostream>
 
-void temperatureSensor::processData() {
-    std::cout << "Processing data from " << this->name << " Sensor." << std::endl;
-}
-
-void temperatureSensor::gatherData() {
+void Sensor::gatherData() {
     std::cout << "Gathering data from " << this->name << " Sensor." << std::endl;
 }
 
-void velocitySensor::processData() {
+void Sensor::processData() {
     std::cout << "Processing data from " << this->name << " Sensor." << std::endl;
-}
-
-void velocitySensor::gatherData() {
-    std::cout << "Gathering data from " << this->name << " Sensor." << std::endl;
-}
-
-void pressureSensor::processData() {
-    std::cout << "Processing data from " << this->name << " Sensor." << std::endl;
-}
-
-void pressureSensor::gatherData() {
-    std::cout << "Gathering data from " << this->name << " Sensor." << std::endl;
 }
 
 std::shared_ptr<Sensor> SensorFactory::createSensor(std::string sensor_type) {

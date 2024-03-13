@@ -24,6 +24,8 @@ int main() {
 
     // Question 2
 
+    /*
+
     // Creates 5 tools.
     auto t1 = std::make_shared<Tools>();
     auto t2 = std::make_shared<Tools>();
@@ -69,6 +71,8 @@ int main() {
     auto duration = std::chrono::duration_cast<std::chrono::seconds>( stopTime - startTime );
 
     std::cout << "Total time to complete tasks: " << duration.count() << " seconds" <<std::endl;
+
+    */
 
     // Question 3
 
