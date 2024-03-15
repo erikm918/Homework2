@@ -1,67 +1,51 @@
 #include "question3.h"
-#include <iostream>
-#include <chrono>
+#include <memory>
+#include <vector>
 #include <thread>
+#include <chrono>
+#include <iostream>
 
-int ATC::traffic = 0;
+void Question3() {
+    // Question 3
 
-bool ATC::trafficNumber() {
-    if (traffic <= 3) {
-        return true;
-    }
-    else {
-        return false;
-    }
-}
+    // Pilot p1, p2, p3, p4, p5, p6, p7, p8, p9, p10;
+    auto p1 = std::make_shared<Pilot>();
+    auto p2 = std::make_shared<Pilot>();
+    auto p3 = std::make_shared<Pilot>();
+    auto p4 = std::make_shared<Pilot>();
+    auto p5 = std::make_shared<Pilot>();
+    auto p6 = std::make_shared<Pilot>();
+    auto p7 = std::make_shared<Pilot>();
+    auto p8 = std::make_shared<Pilot>();
+    auto p9 = std::make_shared<Pilot>();
+    auto p10 = std::make_shared<Pilot>();
 
-void ATC::addTraffic() {
-    traffic++;
-}
+    auto airTrafficControl = std::make_shared<ATC>();
+    std::vector<std::shared_ptr<Pilot>> pilotList = {p1, p2, p3, p4, p5, p6, p7, p8, p9, p10};
 
-void ATC::changeSleepStatus() {
-    if (isAsleep) {
-        isAsleep = false;
-    }
-    else {
-        isAsleep = true;
-    }
-}
+    auto startTime = std::chrono::high_resolution_clock::now();
 
-int Pilot::planeNumber = 0;
+    std::vector<std::thread> atc_threads;
 
-Pilot::Pilot() {
-    myPlane = planeNumber;
-    planeNumber++;
-}
-
-void Pilot::attemptLand(std::shared_ptr<ATC> air_traffic) {
-    // Determines if the plane should be considered for landing.
-    if (hasLanded == false) {
-        
-        // Determines if there is enough room in the approach pattern. If not it will divert the plane to another airport
-        if (air_traffic->trafficNumber()) {
-            std::cout << "Aircraft #" << myPlane << " requesting landing." << std::endl;
-            air_traffic->addTraffic();
-            air_traffic->airTrafficOrder.push(myPlane);
-        }
-        else if (!air_traffic->trafficNumber()) {
-            std::cout << "Approach pattern full. Aircraft #" << myPlane << " redirected to another airport." << std::endl;
-            hasLanded = true;
+    bool allPilotsLanded = false;
+    
+    while (std::all_of(pilotList.begin(), pilotList.end(), [](const auto& pilot) 
+                                                                    {return pilot->flightStatus();}) == false) {
+        for (auto& p : pilotList) {
+            atc_threads.emplace_back([&]() {
+                p->attemptLand(airTrafficControl);
+            });
         }
 
-        // Determines if the given plane is at the front of the approach order, if it is it and the ATC is not talking
-        // to another pilot at the given time, it will land and the plane is removed from the queue.
-        if (air_traffic->airTrafficOrder.front() && air_traffic->sleepStatus()) {
-            air_traffic->changeSleepStatus();
-            std::cout << "Airplane #" << myPlane << " is cleared for landing." << std::endl;
-            std::this_thread::sleep_for(std::chrono::seconds(1));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
 
-            hasLanded = true;
+    for (auto& thread : atc_threads) {
+        thread.join();
+    }
 
-            std::cout << "Runway is clear." << std::endl;
-            air_traffic->changeSleepStatus();
-            air_traffic->airTrafficOrder.pop();
-        }
-    }   
+    auto stopTime = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::seconds>(stopTime - startTime);
+
+    std::cout << "Total time to complete tasks: " << duration.count() << " seconds" <<std::endl;
 }
-
