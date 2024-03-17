@@ -1,71 +1,47 @@
-#include "question3.h"
+#include "Pilot-ATC.h"
 #include <iostream>
 #include <chrono>
 #include <thread>
 #include <mutex>
 
-int ATC::traffic = 0;
+int Pilot::genID = 0;
 
-std::mutex m1;
-
-bool ATC::trafficNumber() {
-    if (traffic <= 3) {
-        return true;
-    }
-    else {
-        return false;
-    }
+void AirTrafficControler::communicate() {
+    atcMtx.lock();
+    this->asleep = false;
+    atcMtx.unlock();
 }
 
-void ATC::addTraffic() {
-    traffic++;
+void AirTrafficControler::fallAsleep() {
+    atcMtx.lock();
+    this->asleep = true;
+    atcMtx.unlock();
 }
 
-void ATC::changeSleepStatus() {
-    if (isAsleep) {
-        isAsleep = false;
-    }
-    else {
-        isAsleep = true;
-    }
+bool AirTrafficControler::isAsleep() {
+    atcMtx.lock();
+    bool sleepStatus = asleep;
+    atcMtx.unlock();
+    return sleepStatus;
 }
 
-int Pilot::planeNumber = 0;
-
-Pilot::Pilot() {
-    myPlane = planeNumber;
-    planeNumber++;
+void Pilot::enterPattern() {
+    this->inPattern = true;
+    std::cout << "Pilot " << this->myID << " is in the traffic pattern." << std::endl;
 }
 
-void Pilot::attemptLand(std::shared_ptr<ATC> air_traffic) {
-    // Determines if the plane should be considered for landing.
-    if (hasLanded == false) {
-        // Determines if there is enough room in the approach pattern. If not it will divert the plane to another airport
-        if (air_traffic->trafficNumber()) {
-            m1.lock();
-            std::cout << "Aircraft #" << myPlane << " requesting landing." << std::endl;
-            air_traffic->addTraffic();
-            air_traffic->airTrafficOrder.push(myPlane);
-            m1.unlock();
+void Pilot::leavePattern() {
+    this->inPattern = false;
+}
 
-            if (air_traffic->airTrafficOrder.front() && air_traffic->sleepStatus()) {
-                m1.lock();
-                air_traffic->changeSleepStatus();
-                std::cout << "Airplane #" << myPlane << " is cleared for landing." << std::endl;
-                hasLanded = true;
-                std::this_thread::sleep_for(std::chrono::seconds(1));
+void Pilot::landPlane() {
+    pilotMtx.lock();
+    std::cout << "Pilot " << this->myID << " has begun landing." << std::endl;
+    
+    std::this_thread::sleep_for(std::chrono::seconds(1)); 
 
-                std::cout << "Runway is clear." << std::endl;
-                air_traffic->changeSleepStatus();
-                air_traffic->airTrafficOrder.pop();
-                m1.unlock();
-            }
-        }
-        else if (!air_traffic->trafficNumber()) {
-            m1.lock();
-            std::cout << "Approach pattern full. Aircraft #" << myPlane << " redirected to another airport." << std::endl;
-            hasLanded = true;
-            m1.unlock();
-        } 
-    }   
+    this->setLanding();
+
+    std::cout << "Pilot " << this->myID << " has landed. Runway is now clear." << std::endl;
+    pilotMtx.unlock();
 }

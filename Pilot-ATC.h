@@ -3,32 +3,38 @@
 
 #include <memory>
 #include <queue>
+#include <mutex>
 
-
-
-class ATC {
-    static int traffic;
-    bool isAsleep = true;
+class AirTrafficControler {
+    bool asleep;
+    std::mutex atcMtx;
 
     public:
-        bool trafficNumber();
-        bool sleepStatus() {return isAsleep;}
-        void addTraffic();
-        void changeSleepStatus();
-        std::queue<int> airTrafficOrder;
+        AirTrafficControler() : asleep(true) {}
+
+        void communicate();
+        void fallAsleep();
+        bool isAsleep();
 };
 
 class Pilot {
-    bool inTraffic = false;
-    static int planeNumber;
-    int myPlane = 0;
-    bool hasLanded = false; // This both includes at the given airport or if it was redirected.
+    bool inPattern;
+    bool landed;
+    std::mutex pilotMtx;
+
+    int myID;
+    static int genID;
 
     public:
-        Pilot(); // Only exists to increase plane number for assignment.
-        void attemptLand(std::shared_ptr<ATC> air_traffic);
-        bool flightStatus() {return hasLanded;}
-        int findPlane() {return myPlane;}
+        Pilot() : inPattern(false) {myID = genID; genID++;}
+
+        int getID() {return this->myID;}
+        bool isInPattern() {return this->inPattern;}
+        bool hasLanded() {return this->landed;}
+        void enterPattern();
+        void leavePattern();
+        void landPlane();
+        void setLanding() {landed = true;}
 };
 
 #endif

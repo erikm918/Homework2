@@ -3,49 +3,68 @@
 #include <vector>
 #include <thread>
 #include <chrono>
+#include <mutex>
 #include <iostream>
 
 void Question3() {
-    // Question 3
+    const int trafficPatternNumber = 3;
+    const int numOfPilots = 10;
 
-    // Pilot p1, p2, p3, p4, p5, p6, p7, p8, p9, p10;
-    auto p1 = std::make_shared<Pilot>();
-    auto p2 = std::make_shared<Pilot>();
-    auto p3 = std::make_shared<Pilot>();
-    auto p4 = std::make_shared<Pilot>();
-    auto p5 = std::make_shared<Pilot>();
-    auto p6 = std::make_shared<Pilot>();
-    auto p7 = std::make_shared<Pilot>();
-    auto p8 = std::make_shared<Pilot>();
-    auto p9 = std::make_shared<Pilot>();
-    auto p10 = std::make_shared<Pilot>();
+    AirTrafficControler atc;
+    std::vector<std::thread> all_threads;
+    std::vector<std::shared_ptr<Pilot>> pilots;
 
-    auto airTrafficControl = std::make_shared<ATC>();
-    std::vector<std::shared_ptr<Pilot>> pilotList = {p1, p2, p3, p4, p5, p6, p7, p8, p9, p10};
+    // Creates necessary pilots and puts them in the back of a vector.
+    for (int i = 0; i < numOfPilots; i++) {
+        pilots.emplace_back(std::make_shared<Pilot>());
+    }
+
+    std::mutex m1, m2;
 
     auto startTime = std::chrono::high_resolution_clock::now();
 
-    std::vector<std::thread> atc_threads;
+    static int inPattern = 0;
 
-    bool allPilotsLanded = false;
-    
-    while (std::all_of(pilotList.begin(), pilotList.end(), [](const auto& pilot) 
-                                                                    {return pilot->flightStatus();}) == false) {
-        for (auto& p : pilotList) {
-            atc_threads.emplace_back([&]() {
-                p->attemptLand(airTrafficControl);
+    while (std::all_of(pilots.begin(), pilots.end(), [] (const auto& pilot) {return pilot->hasLanded();}) == false) {
+        for (auto& p : pilots) {
+
+            all_threads.emplace_back([&]() {
+                if (m1.try_lock()) {
+                    if (inPattern <= 3 && !p->isInPattern() && !p->hasLanded()) {
+                        inPattern += 1;
+                        p->enterPattern();
+                    }
+                    else if (inPattern > 3 && !p->isInPattern() && !p->hasLanded()) {
+                        std::cout << "Traffic pattern is full. Diverting Pilot " << p->getID() 
+                                                                        << " to another airport." << std::endl;
+                        p->setLanding();
+                    }
+
+                    m1.unlock();
+                }
+                
+                if (p->isInPattern() && atc.isAsleep() && m2.try_lock()) {
+                    atc.communicate();
+                    std::cout << "Pilot " << p->getID() << " has requested landing." << std::endl;
+
+                    p->landPlane();
+                    
+                    atc.fallAsleep();
+
+                    p->leavePattern();
+                    inPattern -= 1;
+                    m2.unlock();
+                }
             });
         }
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 
-    for (auto& thread : atc_threads) {
-        thread.join();
+    for (auto& t : all_threads) {
+        t.join();
     }
 
     auto stopTime = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::seconds>(stopTime - startTime);
 
-    std::cout << "Total time to complete tasks: " << duration.count() << " seconds" <<std::endl;
+    std::cout << "Total duration of landing procedure: " << duration.count() << " seconds" <<std::endl;
 }
