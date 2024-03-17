@@ -1,8 +1,4 @@
-#include "question2.h"
-#include <thread>
-#include <iostream>
-#include <chrono>
-#include <vector>
+#include "question1-2-3-4.h"
 
 void Question2() {
     // Question 2

@@ -1,10 +1,4 @@
-#include "question3.h"
-#include <memory>
-#include <vector>
-#include <thread>
-#include <chrono>
-#include <mutex>
-#include <iostream>
+#include "question1-2-3-4.h"
 
 void Question3() {
     const int trafficPatternNumber = 3;
