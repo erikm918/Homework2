@@ -7,17 +7,19 @@
 // General ID of the pilots. Incremented up in constructor to ensure unique ID
 int Pilot::genID = 0;
 
-// Sets ATC as asleep or awake.
+// Sets ATC as asleep or awake. Will lock/unlock mutex depending on availability of ATC.
 void AirTrafficControler::communicate() {
-    atcMtx.lock();
-    this->asleep = false;
-    atcMtx.unlock();
+    if (atcMtx.try_lock()) {
+        this->asleep = false;
+        atcMtx.unlock();
+    }
 }
 
 void AirTrafficControler::fallAsleep() {
-    atcMtx.lock();
-    this->asleep = true;
-    atcMtx.unlock();
+    if (atcMtx.try_lock()) {
+        this->asleep = true;
+        atcMtx.unlock();
+    }
 }
 
 // Checks if the ATC is asleep

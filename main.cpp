@@ -4,9 +4,7 @@
 #include <memory>
 #include <vector>
 #include <thread>
-#include "question1.h"
-#include "question2.h"
-#include "question3.h"
+#include "question1-2-3-4.h"
 
 int main() {
     // Question1();
