@@ -1,9 +1,11 @@
 #include "question1-2-3-4.h"
 
 void Question3() {
+    // Constant numbers required for the code to operate.
     const int trafficPatternNumber = 3;
     const int numOfPilots = 10;
 
+    // Creates ATC and vector to contain threads and pilots
     AirTrafficControler atc;
     std::vector<std::thread> all_threads;
     std::vector<std::shared_ptr<Pilot>> pilots;
@@ -19,40 +21,55 @@ void Question3() {
 
     static int inPattern = 0;
 
+    // While loop that runs on the condition that the whole vector is not finished landing yet. This include diversions.
     while (std::all_of(pilots.begin(), pilots.end(), [] (const auto& pilot) {return pilot->hasLanded();}) == false) {
         for (auto& p : pilots) {
 
-            all_threads.emplace_back([&]() {
-                if (m1.try_lock()) {
-                    if (inPattern <= 3 && !p->isInPattern() && !p->hasLanded()) {
-                        inPattern += 1;
-                        p->enterPattern();
+            // Ignores pilots that have already landed
+            if (!p->hasLanded()) {
+                /* 
+                    Creates and adds thread to the all_threads vector. This allows for multiple tasks to be completed
+                    at the same time. Use of a lambda function in order to determine the correct steps required by 
+                    the pilot and ATC.
+                */
+                all_threads.emplace_back([&]() {
+                    // Determines if the pilot can join the pattern or not. If pattern is full the plane is diverted 
+                    // and considered landed.
+                    if (m1.try_lock()) {
+                        if (inPattern <= 3 && !p->isInPattern()) {
+                            inPattern += 1;
+                            p->enterPattern();
+                        }
+                        else if (inPattern > 3 && !p->isInPattern()) {
+                            std::cout << "Traffic pattern is full. Diverting Pilot " << p->getID() 
+                                                                            << " to another airport." << std::endl;
+                            p->setLanding();
+                        }
+
+                        m1.unlock();
                     }
-                    else if (inPattern > 3 && !p->isInPattern() && !p->hasLanded()) {
-                        std::cout << "Traffic pattern is full. Diverting Pilot " << p->getID() 
-                                                                        << " to another airport." << std::endl;
-                        p->setLanding();
+
+                    // Determines if the pilot can communicate with the ATC. If it can, and other required cases are met,
+                    // the pilot will land the plane and will be ignored in the future.
+                    if (p->isInPattern() && atc.isAsleep() && m2.try_lock()) {
+                        atc.communicate();
+                        std::cout << "Pilot " << p->getID() << " has requested landing." << std::endl;
+
+                        p->landPlane();
+                        
+                        atc.fallAsleep();
+
+                        // Ensures the pilot is no longer in the pattern so other planes may join.
+                        p->leavePattern();
+                        inPattern -= 1;
+                        m2.unlock();
                     }
-
-                    m1.unlock();
-                }
-                
-                if (p->isInPattern() && atc.isAsleep() && m2.try_lock()) {
-                    atc.communicate();
-                    std::cout << "Pilot " << p->getID() << " has requested landing." << std::endl;
-
-                    p->landPlane();
-                    
-                    atc.fallAsleep();
-
-                    p->leavePattern();
-                    inPattern -= 1;
-                    m2.unlock();
-                }
-            });
+                });
+            }
         }
     }
 
+    // Ensures all created threads are ended.
     for (auto& t : all_threads) {
         t.join();
     }

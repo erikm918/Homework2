@@ -4,8 +4,10 @@
 #include <thread>
 #include <mutex>
 
+// General ID of the pilots. Incremented up in constructor to ensure unique ID
 int Pilot::genID = 0;
 
+// Sets ATC as asleep or awake.
 void AirTrafficControler::communicate() {
     atcMtx.lock();
     this->asleep = false;
@@ -18,6 +20,7 @@ void AirTrafficControler::fallAsleep() {
     atcMtx.unlock();
 }
 
+// Checks if the ATC is asleep
 bool AirTrafficControler::isAsleep() {
     atcMtx.lock();
     bool sleepStatus = asleep;
@@ -25,6 +28,7 @@ bool AirTrafficControler::isAsleep() {
     return sleepStatus;
 }
 
+// Sets the bool value of whether the plane is in the pattern when it enters and leaves (lands/diverts).
 void Pilot::enterPattern() {
     this->inPattern = true;
     std::cout << "Pilot " << this->myID << " is in the traffic pattern." << std::endl;
@@ -33,6 +37,7 @@ void Pilot::enterPattern() {
 void Pilot::leavePattern() {
     this->inPattern = false;
 }
+
 
 void Pilot::landPlane() {
     pilotMtx.lock();
