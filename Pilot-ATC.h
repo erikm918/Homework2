@@ -5,12 +5,12 @@
 #include <queue>
 #include <mutex>
 
-class AirTrafficControler {
+class AirTrafficController {
     bool asleep;
     std::mutex atcMtx;
 
     public:
-        AirTrafficControler() : asleep(true) {}
+        AirTrafficController() : asleep(true) {}
 
         void communicate();
         void fallAsleep();
@@ -20,7 +20,7 @@ class AirTrafficControler {
 class Pilot {
     bool inPattern;
     bool landed;
-    std::mutex pilotMtx;
+    static std::mutex pilotMtx;
 
     int myID;
     static int genID;
@@ -31,10 +31,11 @@ class Pilot {
         int getID() {return this->myID;}
         bool isInPattern() {return this->inPattern;}
         bool hasLanded() {return this->landed;}
-        void enterPattern();
-        void leavePattern();
         void landPlane();
         void setLanding() {landed = true;}
+        void setPattern() {inPattern = true;}
+        void enterPattern();
+        void divertPilot();
 };
 
 #endif

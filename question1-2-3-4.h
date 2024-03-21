@@ -12,6 +12,7 @@
 #include <chrono>
 #include <mutex>
 #include <string>
+#include <atomic>
 
 void Question1();
 

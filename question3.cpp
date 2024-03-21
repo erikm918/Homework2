@@ -6,7 +6,7 @@ void Question3() {
     const int numOfPilots = 10;
 
     // Creates ATC and vector to contain threads and pilots
-    AirTrafficControler atc;
+    AirTrafficController atc;
     std::vector<std::thread> all_threads;
     std::vector<std::shared_ptr<Pilot>> pilots;
 
@@ -15,9 +15,17 @@ void Question3() {
         pilots.emplace_back(std::make_shared<Pilot>());
     }
 
-    std::mutex m1, m2;
+    std::mutex m1, m2, speakMtx;
 
     auto startTime = std::chrono::high_resolution_clock::now();
+
+    /* 
+    Forces the first pilot in the pilots vector into the pattern such that it may immediately begen landing process.
+    Primarily here to prevent weird order of output and ensure that results are as expected. Doesn't effect anything
+    else in the code
+    */
+    pilots[0]->setPattern();
+    pilots[0]->enterPattern();
 
     static unsigned int inPattern = 0;
 
@@ -35,41 +43,31 @@ void Question3() {
                 all_threads.emplace_back([&]() {
                     // Determines if the pilot can join the pattern or not. If pattern is full the plane is diverted 
                     // and considered landed.
-                    if (m1.try_lock()) {
-                        if (inPattern <= 3 && !p->isInPattern() && !p->hasLanded()) {
-                            atc.communicate();
-                            if (!atc.isAsleep()) {
-                                inPattern += 1;
-                                p->enterPattern();
-                                atc.fallAsleep();
-                            }
-                        }
-                        else if (inPattern > 3 && !p->isInPattern() && !p->hasLanded()) {
-                            atc.communicate();
-                            if (!atc.isAsleep()) {
-                                std::cout << "Traffic pattern is full. Diverting Pilot " 
-                                                                << p->getID() << " to another airport." << std::endl;
-                                p->setLanding();
-                                atc.fallAsleep();
-                            }
-                        }
-
-                        m1.unlock();
-                    }
-
                     // Determines if the pilot can communicate with the ATC. If it can, and other required cases are met,
                     // the pilot will land the plane and will be ignored in the future.
                     if (p->isInPattern() && atc.isAsleep() && m2.try_lock() && !p->hasLanded()) {
                         atc.communicate();
-                        std::cout << "Pilot " << p->getID() << " has requested landing." << std::endl;
 
                         p->landPlane();
 
-                        // Ensures the pilot is no longer in the pattern so other planes may join.
-                        p->leavePattern();
-                        inPattern -= 1;
+                        if (inPattern > 0) {
+                            inPattern -= 1;
+                        }
+
                         atc.fallAsleep();
                         m2.unlock();
+                    }
+
+                    if (m1.try_lock()) {
+                        if (inPattern < 3 && !p->isInPattern() && !p->hasLanded()) {
+                            inPattern += 1;
+                            p->enterPattern();
+                        }
+                        else if (inPattern >=3 && !p->isInPattern() && !p->hasLanded()) {
+                            p->divertPilot();
+                        }
+
+                        m1.unlock();
                     }
                 });
             }
