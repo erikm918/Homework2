@@ -15,7 +15,7 @@ void Question3() {
         pilots.emplace_back(std::make_shared<Pilot>());
     }
 
-    std::mutex m1, m2, speakMtx;
+    std::mutex m1, m2;
 
     auto startTime = std::chrono::high_resolution_clock::now();
 
