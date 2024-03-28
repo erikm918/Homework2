@@ -20,6 +20,6 @@ void Question2();
 
 void Question3();
 
-void Question4();
+int Question4();
 
 #endif

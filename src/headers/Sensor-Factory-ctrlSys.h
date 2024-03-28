@@ -50,7 +50,7 @@ class SensorFactory {
 
 // Creates a control system that adds sensors using the sensor factory and contains a monitor and adjust function
 class AerospaceControlSystem {
-    std::vector<std::shared_ptr<Sensor>> all_sensors;
+    std::vector<std::shared_ptr<Sensor> > all_sensors;
 
     public:
         void addSensor(std::shared_ptr<Sensor> new_sensor);

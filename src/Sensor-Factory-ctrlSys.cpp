@@ -1,4 +1,4 @@
-#include "Sensor-Factory-ctrlSys.h"
+#include "headers/Sensor-Factory-ctrlSys.h"
 #include <iostream>
 
 // Simulation of processing/gathering data. Allows for inheritance of funciton.
