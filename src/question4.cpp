@@ -8,7 +8,7 @@ int Question4() {
         return -1;
     }
 
-    GLFWwindow* window = glfwCreateWindow(500, 500, "Sine Curve using OpenGL with GLEW and GLFW", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(1000, 1000, "Question 4 Graph", NULL, NULL);
     if ( !window ) {
         std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -31,17 +31,24 @@ int Question4() {
         glVertex2f( 1.0, 0.0 );
         glVertex2f( 0.0, 1.0 );
         glVertex2f( 0.0, -1.0 );
-        // Plot sine curve
-        glColor3f( 0.0, 1.0, 0.0 );
-
-        for ( float i = 0; i < 2 * 3.14159; i += 0.001 ) {
-            float x = ( 2 * i - 3.14159 ) / 3.14159;
-            float y = sin( i );
-            glVertex2f( x, y - 0.001 );
-            glVertex2f( x, y );
-        }
-
         glEnd();
+
+
+        
+        glColor3f(0.0f, 1.0f, 0.75f);
+        
+        // Pseudo launch path. Imitates the trajectory of a rocket leaving Earth
+        glBegin(GL_LINES);
+        for (float i = 0; i < 100; i += 0.00001) {
+            float theta = 2.0f * 3.1415926f * i / float(100);
+
+            float x = (theta/7.5) * cosf(theta);
+            float y = (theta/7.5) * sinf(theta);
+
+            glVertex2f(x, y);
+        }
+        glEnd();
+
         glfwSwapBuffers( window );
         glfwPollEvents();
     }

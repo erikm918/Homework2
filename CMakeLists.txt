@@ -1,4 +1,4 @@
-ccmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.5)
 project(HW2)
 set(CMAKE_CXX_STANDARD 20)
 
@@ -35,7 +35,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(glew)
 
 # Our Project
-set(SOURCES_FILES
+set(SOURCE_FILES
     src/main.cpp
     src/question1.cpp
     src/question2.cpp
